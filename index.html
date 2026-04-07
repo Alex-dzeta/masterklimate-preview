@@ -426,13 +426,76 @@
 </a>
 
 <script>
-const b=document.getElementById('burger'),mn=document.getElementById('mobileNav');
-b.onclick=()=>{b.classList.toggle('open');mn.classList.toggle('open');document.body.style.overflow=mn.classList.contains('open')?'hidden':''};
-mn.querySelectorAll('a:not(.btn)').forEach(a=>a.onclick=()=>{b.classList.remove('open');mn.classList.remove('open');document.body.style.overflow=''});
-document.querySelectorAll('a[href^="#"]').forEach(a=>{a.onclick=function(e){e.preventDefault();document.querySelector(this.getAttribute('href'))?.scrollIntoView({behavior:'smooth'})}});
-const obs=new IntersectionObserver(en=>{en.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.12});
-document.querySelectorAll('[data-anim]').forEach(el=>obs.observe(el));
-let last=0;window.addEventListener('scroll',()=>{const h=document.getElementById('header'),y=window.scrollY;h.classList.toggle('scrolled',y>50);h.classList.toggle('up',y<last&&y>80);last=y},{passive:true});
+(function(){
+    var b = document.getElementById('burger');
+    var mn = document.getElementById('mobileNav');
+    var hdr = document.getElementById('header');
+    var menuOpen = false;
+
+    function closeMenu() {
+        menuOpen = false;
+        b.classList.remove('open');
+        mn.classList.remove('open');
+        hdr.classList.remove('menu-open');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+    }
+
+    function openMenu() {
+        menuOpen = true;
+        b.classList.add('open');
+        mn.classList.add('open');
+        hdr.classList.add('menu-open');
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+    }
+
+    b.addEventListener('click', function() {
+        if (menuOpen) { closeMenu(); } else { openMenu(); }
+    });
+
+    // All links inside mobile nav close the menu
+    mn.querySelectorAll('a').forEach(function(a) {
+        a.addEventListener('click', function() {
+            closeMenu();
+        });
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            var target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                // Restore scroll position if body was fixed
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+                setTimeout(function() {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }, 10);
+            }
+        });
+    });
+
+    // Scroll animations
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('in'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('[data-anim]').forEach(function(el) { obs.observe(el); });
+
+    // Header show/hide on scroll (disabled when menu is open)
+    var lastY = 0;
+    window.addEventListener('scroll', function() {
+        if (menuOpen) return;
+        var y = window.scrollY;
+        hdr.classList.toggle('scrolled', y > 50);
+        hdr.classList.toggle('up', y < lastY && y > 80);
+        lastY = y;
+    }, { passive: true });
+})();
 </script>
 </body>
 </html>
